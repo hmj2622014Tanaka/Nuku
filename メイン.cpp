@@ -16,7 +16,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	// 画像の読み込み
 	int imgTitle = LoadGraph("image/title.png");
 	int imgBg = LoadGraph("image/bg.png");
-	int imgPlayer = LoadGraph("image/player.png");
+	int imgPlayer = LoadGraph("image/Charactor.png");
 	int imgEnemy = LoadGraph("image/enemy.png");
 
 	// ゲーム進行に関する変数
@@ -51,9 +51,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 		timer++; // タイマーカウント
 
-		// --------------------------------------------------
 		// 背景・キャラクターの描画（シーン共通）
-		// --------------------------------------------------
 		if (imgBg != -1) DrawGraph(0, 0, imgBg, false);
 
 		// キャラクター描画
@@ -67,7 +65,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		{
 		case TITLE: // タイトル画面
 			SetFontSize(60);
-			DrawString(160, 160, "一撃必殺！抜刀対決", GetColor(255, 255, 255));
+			DrawString(100, 160, "一撃必殺！抜刀対決", GetColor(255, 255, 255));
 
 			if (timer % 60 < 30)
 			{
@@ -114,8 +112,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				reactionTime = nowTime - signalStartTime;
 
 				// 敵の反応時間を計算（連勝するほど敵が速くなる）
-				enemyTime = (GetRand(100) + 250) - (wins * 15);
-				if (enemyTime < 120) enemyTime = 120; // 敵の最速下限値
+				enemyTime = (GetRand(150) + 400) - (wins * 15);
+				if (enemyTime < 220) enemyTime = 220; // 敵の最速下限値
 
 				// 勝敗判定
 				if (reactionTime < enemyTime)
@@ -138,19 +136,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			SetFontSize(50);
 			if (resultType == WIN)
 			{
-				DrawString(260, 140, "【 勝利 】", GetColor(0, 255, 255));
-				DrawFormatString(180, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
-				DrawFormatString(180, 270, GetColor(170, 170, 170), "敵の速度    : %d ms", enemyTime);
+				DrawString(200, 140, "【 勝利 】", GetColor(0, 255, 255));
+				DrawFormatString(120, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
+				DrawFormatString(120, 270, GetColor(170, 170, 170), "敵の速度    : %d ms", enemyTime);
 			}
 			else if (resultType == LOSE)
 			{
-				DrawString(260, 140, "【 敗北 】", GetColor(136, 136, 136));
-				DrawFormatString(180, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
-				DrawFormatString(180, 270, GetColor(255, 136, 136), "敵の速度    : %d ms", enemyTime);
+				DrawString(200, 140, "【 敗北 】", GetColor(136, 136, 136));
+				DrawFormatString(120, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
+				DrawFormatString(120, 270, GetColor(255, 136, 136), "敵の速度    : %d ms", enemyTime);
 			}
 			else if (resultType == FLYING)
 			{
-				DrawString(200, 140, "【 フライング 】", GetColor(255, 0, 0));
+				DrawString(180, 140, "【 フライング 】", GetColor(255, 0, 0));
 				SetFontSize(30);
 				DrawString(180, 230, "焦って刀を抜いてしまった...", GetColor(255, 255, 255));
 				wins = 0;
