@@ -14,8 +14,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	SetDrawScreen(DX_SCREEN_BACK);			// 裏画面描画
 
 	// 画像の読み込み
-	int imgTitle = LoadGraph("image/title.png");
+	int imgTitle = LoadGraph("image/title.jpg");
 	int imgBg = LoadGraph("image/bg.png");
+	int imgBg2 = LoadGraph("image/bg2.png");
 	int imgPlayer = LoadGraph("image/Charactor.png");
 	int imgEnemy = LoadGraph("image/enemy.png");
 
@@ -64,8 +65,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		switch (scene)
 		{
 		case TITLE: // タイトル画面
+			DrawExtendGraph(0, 0, 720,640, imgTitle, false);
+
 			SetFontSize(60);
-			DrawString(100, 160, "一撃必殺！抜刀対決", GetColor(255, 255, 255));
+			DrawString(100, 160, "一撃必殺！抜刀対決", GetColor(255, 0, 0));
 
 			if (timer % 60 < 30)
 			{
@@ -83,6 +86,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			break;
 
 		case WAIT: // 構え・合図待ち状態
+			DrawExtendGraph(0, 0, 720, 640, imgBg, false);
+
 			SetFontSize(40);
 			DrawString(260, 100, "じっと待て...", GetColor(204, 204, 204));
 
@@ -133,16 +138,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			break;
 
 		case RESULT: // 勝敗結果表示
+			DrawExtendGraph(0, 0, 720, 640, imgBg2, false);
+
 			SetFontSize(50);
 			if (resultType == WIN)
 			{
-				DrawString(200, 140, "【 勝利 】", GetColor(0, 255, 255));
+				DrawString(200, 140, "【 勝利 】", GetColor(0, 255, 0));
 				DrawFormatString(120, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
 				DrawFormatString(120, 270, GetColor(170, 170, 170), "敵の速度    : %d ms", enemyTime);
 			}
 			else if (resultType == LOSE)
 			{
-				DrawString(200, 140, "【 敗北 】", GetColor(136, 136, 136));
+				DrawString(200, 140, "【 敗北 】", GetColor(100, 100, 255));
 				DrawFormatString(120, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
 				DrawFormatString(120, 270, GetColor(255, 136, 136), "敵の速度    : %d ms", enemyTime);
 			}
