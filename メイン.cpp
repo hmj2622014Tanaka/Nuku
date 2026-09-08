@@ -4,9 +4,9 @@
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
 	// 定数
-	const int WIDTH = 720, HEIGHT = 640;	// ウィンドウの幅と高さ
+	const int WIDTH = 920, HEIGHT = 640;	// ウィンドウの幅と高さ
 
-	SetWindowText("一撃必殺！抜刀対決");	// ウィンドウのタイトル
+	SetWindowText("刹那之閃 ― 抜刀対決 ―");	// ウィンドウのタイトル
 	SetGraphMode(WIDTH, HEIGHT, 32);		// ウィンドウの大きさとカラービット数
 	ChangeWindowMode(true);					// ウィンドウモードで起動
 	if (DxLib_Init() == -1) return -1;		// ライブラリ初期化
@@ -16,9 +16,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	// 画像の読み込み
 	int imgTitle = LoadGraph("image/title.jpg");
 	int imgBg = LoadGraph("image/bg.png");
+	int imgBg1 = LoadGraph("image/bg1.png");
 	int imgBg2 = LoadGraph("image/bg2.png");
-	int imgPlayer = LoadGraph("image/Charactor.png");
-	int imgEnemy = LoadGraph("image/enemy.png");
 
 	// ゲーム進行に関する変数
 	enum { TITLE, WAIT, CUT, RESULT };
@@ -52,28 +51,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 		timer++; // タイマーカウント
 
-		// 背景・キャラクターの描画（シーン共通）
+		// 背景の描画（シーン共通）
 		if (imgBg != -1) DrawGraph(0, 0, imgBg, false);
-
-		// キャラクター描画
-		if (imgPlayer != -1) DrawGraph(180, 320, imgPlayer, true);
-		else DrawBox(180, 320, 260, 480, GetColor(0, 255, 255), true); // プレイヤー（青）
-
-		if (imgEnemy != -1) DrawGraph(460, 320, imgEnemy, true);
-		else DrawBox(460, 320, 540, 480, GetColor(255, 100, 100), true); // 敵（赤）
 
 		switch (scene)
 		{
 		case TITLE: // タイトル画面
-			DrawExtendGraph(0, 0, 720,640, imgTitle, false);
+			DrawExtendGraph(0, 0, 920,640, imgTitle, false);
 
 			SetFontSize(60);
-			DrawString(100, 160, "一撃必殺！抜刀対決", GetColor(255, 0, 0));
+			DrawString(200, 90, "刹那之閃", GetColor(255, 0, 0));
+			DrawString(200, 160, "―― 抜刀対決 ――", GetColor(255, 0, 0));
 
 			if (timer % 60 < 30)
 			{
 				SetFontSize(30);
-				DrawString(200, 400, "クリック で対決開始", GetColor(0, 255, 0));
+				DrawString(325, 400, "クリック で対決開始", GetColor(0, 255, 0));
 			}
 
 			if (isMousePush)
@@ -86,10 +79,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			break;
 
 		case WAIT: // 構え・合図待ち状態
-			DrawExtendGraph(0, 0, 720, 640, imgBg, false);
+			DrawExtendGraph(0, 0, 920, 640, imgBg, false);
 
 			SetFontSize(40);
-			DrawString(260, 100, "じっと待て...", GetColor(204, 204, 204));
+			DrawString(360, 100, "じっと待て...", GetColor(0, 150, 255));
 
 			// 合図が出る前にクリック（フライング判定）
 			if (isMousePush)
@@ -108,8 +101,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			break;
 
 		case CUT: // 合図発生！抜刀入力待ち
+			DrawExtendGraph(0, 0, 920, 640, imgBg1, false);
+
 			SetFontSize(80);
-			DrawString(140, 180, "見切ったり！", GetColor(255, 0, 0));
+			DrawString(160, 180, "見切ったり！", GetColor(255, 0, 0));
 
 			if (isMousePush)
 			{
@@ -138,33 +133,33 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			break;
 
 		case RESULT: // 勝敗結果表示
-			DrawExtendGraph(0, 0, 720, 640, imgBg2, false);
+			DrawExtendGraph(0, 0, 920, 640, imgBg2, false);
 
 			SetFontSize(50);
 			if (resultType == WIN)
 			{
-				DrawString(200, 140, "【 勝利 】", GetColor(0, 255, 0));
-				DrawFormatString(120, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
-				DrawFormatString(120, 270, GetColor(170, 170, 170), "敵の速度    : %d ms", enemyTime);
+				DrawString(300, 140, "【 勝利 】", GetColor(0, 255, 0));
+				DrawFormatString(170, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
+				DrawFormatString(170, 270, GetColor(170, 170, 170), "敵の速度    : %d ms", enemyTime);
 			}
 			else if (resultType == LOSE)
 			{
-				DrawString(200, 140, "【 敗北 】", GetColor(100, 100, 255));
-				DrawFormatString(120, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
-				DrawFormatString(120, 270, GetColor(255, 136, 136), "敵の速度    : %d ms", enemyTime);
+				DrawString(300, 140, "【 敗北 】", GetColor(100, 100, 255));
+				DrawFormatString(170, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
+				DrawFormatString(170, 270, GetColor(255, 136, 136), "敵の速度    : %d ms", enemyTime);
 			}
 			else if (resultType == FLYING)
 			{
-				DrawString(180, 140, "【 フライング 】", GetColor(255, 0, 0));
+				DrawString(260, 140, "【 フライング 】", GetColor(255, 0, 0));
 				SetFontSize(30);
-				DrawString(180, 230, "焦って刀を抜いてしまった...", GetColor(255, 255, 255));
+				DrawString(280, 230, "焦って刀を抜いてしまった...", GetColor(255, 255, 255));
 				wins = 0;
 			}
 
 			if (timer % 60 < 30)
 			{
 				SetFontSize(24);
-				DrawString(220, 500, "クリックで次の対決へ", GetColor(255, 255, 0));
+				DrawString(320, 500, "クリックで次の対決へ", GetColor(255, 255, 0));
 			}
 
 			// 誤連打防止のため結果画面遷移後 30フレーム経過してから入力を受け付ける
@@ -180,7 +175,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		SetFontSize(24);
 		DrawFormatString(10, 10, GetColor(255, 255, 0), "連勝数: %d", wins);
 
-		ScreenFlip(); // 裏画面を表画面に反映
+		ScreenFlip();	//裏画面の内容を表画面に反映させる
 	}
 
 	DxLib_End();	// ライブラリ終了処理
