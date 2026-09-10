@@ -6,7 +6,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	// 定数
 	const int WIDTH = 920, HEIGHT = 640;	// ウィンドウの幅と高さ
 
-	SetWindowText("刹那之閃 ― 抜刀対決 ―");	// ウィンドウのタイトル
+	SetWindowText("刹那一閃 ― 抜刀対決 ―");	// ウィンドウのタイトル
 	SetGraphMode(WIDTH, HEIGHT, 32);		// ウィンドウの大きさとカラービット数
 	ChangeWindowMode(true);					// ウィンドウモードで起動
 	if (DxLib_Init() == -1) return -1;		// ライブラリ初期化
@@ -60,13 +60,33 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			DrawExtendGraph(0, 0, 920,640, imgTitle, false);
 
 			SetFontSize(60);
-			DrawString(200, 90, "刹那之閃", GetColor(255, 0, 0));
-			DrawString(200, 160, "―― 抜刀対決 ――", GetColor(255, 0, 0));
+
+			// 影
+			DrawString(351, 91, "刹那一閃", GetColor(0, 0, 0));
+
+			// 本体
+			DrawString(350, 90, "刹那一閃", GetColor(220, 180, 70));
+
+			// 影
+			DrawString(201, 211, "―― 抜刀対決 ――", GetColor(0, 0, 0));
+
+			// 本体
+			DrawString(200, 210, "―― 抜刀対決 ――", GetColor(255, 255, 255));
+
+			// 影
+			DrawString(351, 341, "――――", GetColor(0, 0, 0));
+
+			// 本体
+			DrawString(350, 340, "――――", GetColor(220, 180, 70));
 
 			if (timer % 60 < 30)
 			{
 				SetFontSize(30);
-				DrawString(325, 400, "クリック で対決開始", GetColor(0, 255, 0));
+				// 影
+				DrawString(351, 451, "CLICK TO START", GetColor(0, 0, 0));
+
+				// 本体
+				DrawString(350, 450, "CLICK TO START", GetColor(255, 255, 255));
 			}
 
 			if (isMousePush)
