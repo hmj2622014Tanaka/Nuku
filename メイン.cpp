@@ -20,7 +20,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	int imgBg2 = LoadGraph("image/bg2.png");
 
 	// ゲーム進行に関する変数
-	enum { TITLE, WAIT, CUT, RESULT };
+	enum { TITLE, WAIT, CUT, CRITICAL, RESULT };
 	int scene = TITLE;
 	int timer = 0;
 
@@ -34,6 +34,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	// タイマー計測用
 	int signalStartTime = 0;
+	int criticalTimer = 0;
 
 	// マウス入力トリガー管理用
 	int mouseNow = 0;
@@ -140,13 +141,73 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				{
 					resultType = WIN;
 					wins++;
+
+					// 200ms以下ならクリティカル演出
+					if (reactionTime <= 200)
+					{
+						scene = CRITICAL;
+						criticalTimer = 0;
+					}
+					else
+					{
+						scene = RESULT;
+					}
 				}
 				else
 				{
 					resultType = LOSE;
 					wins = 0;
+					scene = RESULT;
 				}
 
+				timer = 0;
+			}
+			break;
+
+		case CRITICAL: // クリティカル演出
+
+			criticalTimer++;
+
+			// 最初暗転
+			if (criticalTimer < 5)
+			{
+				DrawBox(0, 0, 920, 640, GetColor(255, 255, 255), true);
+			}
+			else if (criticalTimer < 15)
+			{
+				DrawBox(0, 0, 920, 640, GetColor(0, 0, 0), true);
+			}
+			else
+			{
+				// 背景
+				DrawBox(0, 0, 920, 640, GetColor(10, 10, 10), true);
+
+				// 飾り
+				SetFontSize(30);
+				DrawString(280, 100, "――――――――――", GetColor(220, 180, 70));
+				DrawString(280, 450, "――――――――――", GetColor(220, 180, 70));
+
+				// 神速
+				SetFontSize(100);
+
+				// 影
+				DrawString(303, 198, "神速", GetColor(40, 40, 40));
+
+				// 本体
+				DrawString(300, 195, "神速", GetColor(230, 190, 70));
+
+				// 反応速度
+				SetFontSize(30);
+				DrawFormatString(350, 330, GetColor(220, 220, 220), "%d ms", reactionTime);
+
+				// サブタイトル
+				SetFontSize(35);
+				DrawString(270, 390, "―― 刹那一閃 ――", GetColor(180, 140, 50));
+			}
+
+			// 結果画面へ
+			if (criticalTimer > 60)
+			{
 				scene = RESULT;
 				timer = 0;
 			}
@@ -161,15 +222,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				DrawString(300, 140, "【 勝利 】", GetColor(0, 255, 0));
 				DrawFormatString(170, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
 				DrawFormatString(170, 270, GetColor(170, 170, 170), "敵の速度    : %d ms", enemyTime);
-				if (reactionTime < 200)
-				{
-					// 影
-					DrawString(172, 332, "神速", GetColor(40, 40, 40));
-
-					// 本体
-					DrawString(170, 330, "神速", GetColor(230, 190, 70));
-				}
-				else if (reactionTime < 300)
+				if (reactionTime < 300)
 				{
 					// 影
 					DrawString(172, 332, "一閃", GetColor(40, 40, 40));
