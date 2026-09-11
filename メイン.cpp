@@ -18,9 +18,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	int imgBg = LoadGraph("image/bg.png");
 	int imgBg1 = LoadGraph("image/bg1.png");
 	int imgBg2 = LoadGraph("image/bg2.png");
+	int imgBg3 = LoadGraph("image/bg3.png");
 
 	// ゲーム進行に関する変数
-	enum { TITLE, WAIT, CUT, CRITICAL, RESULT };
+	enum { TITLE, RULE, WAIT, CUT, CRITICAL, RESULT };
 	int scene = TITLE;
 	int timer = 0;
 
@@ -40,6 +41,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	int mouseNow = 0;
 	int mouseOld = 0;
 
+	// スペース入力トリガー管理用
+	int spaceNow = 0;
+	int spaceOld = 0;
+
 	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)	// メインループ
 	{
 		ClearDrawScreen();	// 画面クリア
@@ -47,18 +52,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		// マウス入力状態の更新（トリガー判定用）
 		mouseOld = mouseNow;
 		mouseNow = GetMouseInput();
+		// スペース入力状態の更新（トリガー判定用）
+		spaceOld = spaceNow;
+		spaceNow = CheckHitKey(KEY_INPUT_SPACE);
+
+		bool isSpacePush = spaceNow && !spaceOld;
 		// 今回のフレームで左クリックされたか（押し下げた瞬間のみ true）
 		bool isMousePush = (mouseNow & MOUSE_INPUT_LEFT) && !(mouseOld & MOUSE_INPUT_LEFT);
 
 		timer++; // タイマーカウント
 
-		// 背景の描画（シーン共通）
-		if (imgBg != -1) DrawGraph(0, 0, imgBg, false);
-
 		switch (scene)
 		{
 		case TITLE: // タイトル画面
 			DrawExtendGraph(0, 0, 920,640, imgTitle, false);
+
+			// UI表示（連勝数）
+			SetFontSize(24);
+			DrawFormatString(10, 10, GetColor(255, 255, 0), "連勝数: %d", wins);
 
 			SetFontSize(60);
 
@@ -80,6 +91,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			// 本体
 			DrawString(350, 340, "――――", GetColor(220, 180, 70));
 
+			SetFontSize(30);
+
+			// 影
+			DrawString(320, 563, "スペースでルール説明へ", GetColor(0, 0, 0));
+
+			// 本体
+			DrawString(320, 560, "スペースでルール説明へ", GetColor(220, 180, 70));
+
 			if (timer % 60 < 30)
 			{
 				SetFontSize(30);
@@ -90,12 +109,44 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				DrawString(350, 450, "CLICK TO START", GetColor(255, 255, 255));
 			}
 
-			if (isMousePush)
+			// スペースキーでルール説明
+			if (isSpacePush)
+			{
+				scene = RULE;
+				timer = 0;
+			}
+			// マウスクリックでゲーム開始
+			else if (isMousePush)
 			{
 				scene = WAIT;
 				timer = 0;
 				// 2秒〜5秒（約120〜300フレーム）のランダムな溜め時間
 				waitTime = GetRand(180) + 120;
+			}
+			break;
+
+		case RULE:
+			DrawExtendGraph(0, 0, 920, 640, imgBg3, false);
+
+			SetFontSize(60);
+			DrawString(350, 60, "遊び方", GetColor(220, 180, 70));
+
+			SetFontSize(30);
+
+			DrawString(150, 160, "① 「見切ったり！」の合図を待つ", GetColor(255, 255, 255));
+			DrawString(150, 220, "② 合図が出た瞬間にクリック！", GetColor(255, 255, 255));
+			DrawString(150, 280, "③ 敵より早く抜刀できれば勝ち！", GetColor(255, 255, 255));
+
+			DrawString(150, 360, "※ 合図の前にクリックするとフライング", GetColor(220, 100, 100));
+
+			SetFontSize(25);
+			DrawString(300, 500, "スペースキーでタイトルへ", GetColor(200, 180, 100));
+
+			// タイトルへ戻る
+			if (timer > 30 && isSpacePush)
+			{
+				scene = TITLE;
+				timer = 0;
 			}
 			break;
 
@@ -133,8 +184,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				reactionTime = nowTime - signalStartTime;
 
 				// 敵の反応時間を計算（連勝するほど敵が速くなる）
-				enemyTime = (GetRand(150) + 400) - (wins * 15);
-				if (enemyTime < 220) enemyTime = 220; // 敵の最速下限値
+				enemyTime = (GetRand(150) + 400) - (wins * 13);
+				if (enemyTime < 250) enemyTime = 250; // 敵の最速下限値
 
 				// 勝敗判定
 				if (reactionTime < enemyTime)
@@ -142,8 +193,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 					resultType = WIN;
 					wins++;
 
-					// 200ms以下ならクリティカル演出
-					if (reactionTime <= 200)
+					// 250ms以下ならクリティカル演出
+					if (reactionTime <= 250)
 					{
 						scene = CRITICAL;
 						criticalTimer = 0;
@@ -219,6 +270,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			SetFontSize(50);
 			if (resultType == WIN)
 			{
+				// UI表示（連勝数）
+				SetFontSize(24);
+				DrawFormatString(10, 10, GetColor(255, 255, 0), "連勝数: %d", wins);
+
+				SetFontSize(50);
+
 				DrawString(300, 140, "【 勝利 】", GetColor(0, 255, 0));
 				DrawFormatString(170, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
 				DrawFormatString(170, 270, GetColor(170, 170, 170), "敵の速度    : %d ms", enemyTime);
@@ -276,14 +333,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			break;
 		}
 
-		// UI表示（連勝数）
-		SetFontSize(24);
-		DrawFormatString(10, 10, GetColor(255, 255, 0), "連勝数: %d", wins);
-
 		ScreenFlip();	//裏画面の内容を表画面に反映させる
-		WaitTimer(16);	//一定時間待つ
-		if (ProcessMessage() == -1) break;	//Windowsから情報を受け取りエラーが起きたら終了
-		if (CheckHitKey(KEY_INPUT_ESCAPE) == 1) break;	//ESCキーが押されたら終了
+		WaitTimer(16);
 	}
 
 	DxLib_End();	// ライブラリ終了処理
