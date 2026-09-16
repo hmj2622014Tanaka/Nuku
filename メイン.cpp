@@ -1,6 +1,14 @@
 ﻿#include "DxLib.h"
 #include <stdlib.h>
 
+// 影をつけた文字列を表示する関数
+void drawText(int x, int y, int col, const char* txt, int siz)
+{
+	SetFontSize(siz);
+	DrawString(x + 3, y + 3, txt, GetColor(0, 0, 0));
+	DrawString(x, y, txt, col);
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
 	// 定数
@@ -45,6 +53,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	int spaceNow = 0;
 	int spaceOld = 0;
 
+	// サウンドの読み込みと音量設定
+	int title = LoadSoundMem("sound/Title.mp3");
+	int wait = LoadSoundMem("sound/Wait.mp3");
+	int win = LoadSoundMem("sound/EndWin.mp3");
+	int lose = LoadSoundMem("sound/EndLose.mp3");
+	int flying = LoadSoundMem("sound/Flying.mp3");
+	int seNuku = LoadSoundMem("sound/Nuku.mp3");
+	int seCritical = LoadSoundMem("sound/Critical.mp3");
+	ChangeVolumeSoundMem(128, title);
+	ChangeVolumeSoundMem(128, win);
+	ChangeVolumeSoundMem(128, lose);
+
+	PlaySoundMem(title, DX_PLAYTYPE_LOOP); // BGMをループ再生
+	
 	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)	// メインループ
 	{
 		ClearDrawScreen();	// 画面クリア
@@ -62,51 +84,28 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 		timer++; // タイマーカウント
 
+
 		switch (scene)
 		{
 		case TITLE: // タイトル画面
+
 			DrawExtendGraph(0, 0, 920,640, imgTitle, false);
 
 			// UI表示（連勝数）
 			SetFontSize(24);
 			DrawFormatString(10, 10, GetColor(255, 255, 0), "連勝数: %d", wins);
 
-			SetFontSize(60);
+			drawText(330, 90, GetColor(220, 180, 70), "刹那の一閃", 60);
 
-			// 影
-			DrawString(333, 93, "刹那の一閃", GetColor(0, 0, 0));
+			drawText(200, 210, GetColor(255, 255, 255), "―― 抜刀対決 ――", 60);
 
-			// 本体
-			DrawString(330, 90, "刹那の一閃", GetColor(220, 180, 70));
+			drawText(350, 340, GetColor(220, 180, 70), "――――", 60);
 
-			// 影
-			DrawString(203, 213, "―― 抜刀対決 ――", GetColor(0, 0, 0));
-
-			// 本体
-			DrawString(200, 210, "―― 抜刀対決 ――", GetColor(255, 255, 255));
-
-			// 影
-			DrawString(353, 343, "――――", GetColor(0, 0, 0));
-
-			// 本体
-			DrawString(350, 340, "――――", GetColor(220, 180, 70));
-
-			SetFontSize(30);
-
-			// 影
-			DrawString(320, 563, "スペースでルール説明へ", GetColor(0, 0, 0));
-
-			// 本体
-			DrawString(320, 560, "スペースでルール説明へ", GetColor(220, 180, 70));
+			drawText(320, 560, GetColor(220, 180, 70), "スペースでルール説明へ", 30);
 
 			if (timer % 60 < 30)
 			{
-				SetFontSize(30);
-				// 影
-				DrawString(353, 453, "CLICK TO START", GetColor(0, 0, 0));
-
-				// 本体
-				DrawString(350, 450, "CLICK TO START", GetColor(255, 255, 255));
+				drawText(350, 450, GetColor(255, 255, 255), "CLICK TO START", 30);
 			}
 
 			// スペースキーでルール説明
@@ -122,6 +121,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				timer = 0;
 				// 2秒〜5秒（約120〜300フレーム）のランダムな溜め時間
 				waitTime = GetRand(180) + 120;
+				StopSoundMem(title); // BGMを停止
+				PlaySoundMem(wait, DX_PLAYTYPE_LOOP); // BGMをループ再生
 			}
 			break;
 
@@ -162,6 +163,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				scene = RESULT;
 				timer = 0;
 				resultType = FLYING;
+				PlaySoundMem(flying, DX_PLAYTYPE_BACK); // BGMを再生
+				StopSoundMem(wait);
 			}
 			// 規定時間が経過したら「見切ったり！」の合図を出す
 			else if (timer >= waitTime)
@@ -198,10 +201,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 					{
 						scene = CRITICAL;
 						criticalTimer = 0;
+						PlaySoundMem(seCritical, DX_PLAYTYPE_BACK); // 効果音
+						PlaySoundMem(win, DX_PLAYTYPE_LOOP); // BGMをループ再生
 					}
 					else
 					{
 						scene = RESULT;
+						PlaySoundMem(win, DX_PLAYTYPE_LOOP); // BGMをループ再生
 					}
 				}
 				else
@@ -209,9 +215,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 					resultType = LOSE;
 					wins = 0;
 					scene = RESULT;
+					PlaySoundMem(lose, DX_PLAYTYPE_LOOP); // BGMをループ再生
 				}
 
 				timer = 0;
+				StopSoundMem(wait);
+				PlaySoundMem(seNuku, DX_PLAYTYPE_BACK); // 効果音
 			}
 			break;
 
@@ -238,14 +247,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				DrawString(280, 100, "――――――――――", GetColor(220, 180, 70));
 				DrawString(280, 450, "――――――――――", GetColor(220, 180, 70));
 
-				// 神速
-				SetFontSize(100);
-
-				// 影
-				DrawString(303, 198, "神速", GetColor(40, 40, 40));
-
-				// 本体
-				DrawString(300, 195, "神速", GetColor(230, 190, 70));
+				// 称号
+				drawText(300, 195, GetColor(230, 190, 70), "神速", 100);
 
 				// 反応速度
 				SetFontSize(30);
@@ -270,38 +273,25 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			SetFontSize(50);
 			if (resultType == WIN)
 			{
-				// UI表示（連勝数）
-				SetFontSize(24);
-				DrawFormatString(10, 10, GetColor(255, 255, 0), "連勝数: %d", wins);
-
-				SetFontSize(50);
 
 				DrawString(300, 140, "【 勝利 】", GetColor(0, 255, 0));
 				DrawFormatString(170, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
 				DrawFormatString(170, 270, GetColor(170, 170, 170), "敵の速度    : %d ms", enemyTime);
-				if (reactionTime < 300)
+				if (reactionTime < 250)
 				{
-					// 影
-					DrawString(172, 332, "一閃", GetColor(40, 40, 40));
-
-					// 本体
-					DrawString(170, 330, "一閃", GetColor(150, 80, 190));
+					drawText(170, 330, GetColor(230, 190, 70), "神速", 50);
+				}
+				else if (reactionTime < 300)
+				{
+					drawText(170, 330, GetColor(150, 80, 190), "一閃", 50);
 				}
 				else if (reactionTime < 400)
 				{
-					// 影
-					DrawString(172, 332, "達人", GetColor(40, 40, 40));
-
-					// 本体
-					DrawString(170, 330, "達人", GetColor(90, 150, 190));
+					drawText(170, 330, GetColor(90, 150, 190), "達人", 50);
 				}
 				else
 				{
-					// 影
-					DrawString(172, 332, "未熟", GetColor(40, 40, 40));
-					
-					// 本体
-					DrawString(170, 330, "未熟", GetColor(130, 130, 130));
+					drawText(170, 330, GetColor(130, 130, 130), "未熟", 50);
 				}
 			}
 			else if (resultType == LOSE)
@@ -312,7 +302,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			}
 			else if (resultType == FLYING)
 			{
-				DrawString(260, 140, "【 フライング 】", GetColor(255, 0, 0));
+				DrawString(260, 140, "【 時期尚早 】", GetColor(255, 0, 0));
 				SetFontSize(30);
 				DrawString(280, 230, "焦って刀を抜いてしまった...", GetColor(255, 255, 255));
 				wins = 0;
@@ -324,11 +314,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				DrawString(320, 500, "クリックで次の対決へ", GetColor(255, 255, 0));
 			}
 
+			// UI表示（連勝数）
+			SetFontSize(24);
+			DrawFormatString(10, 10, GetColor(255, 255, 0), "連勝数: %d", wins);
+
 			// 誤連打防止のため結果画面遷移後 30フレーム経過してから入力を受け付ける
 			if (timer > 30 && isMousePush)
 			{
 				scene = TITLE;
 				timer = 0;
+				StopSoundMem(win); // BGMを停止
+				StopSoundMem(lose); // BGMを停止
+				PlaySoundMem(title, DX_PLAYTYPE_LOOP); // BGMをループ再生
 			}
 			break;
 		}
