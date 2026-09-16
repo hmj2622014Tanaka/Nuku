@@ -34,9 +34,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	int timer = 0;
 
 	// 対決ロジック用の変数
-	int waitTime = 0;         // 合図が出るまでのランダム待機時間（フレーム数）
-	int reactionTime = 0;     // プレイヤーの反応速度（ミリ秒）
-	int enemyTime = 0;        // 敵の反応速度（ミリ秒）
+	int waitTime = 0;         // 合図が出るまでのランダム待機時間
+	int reactionTime = 0;     // プレイヤーの反応速度
+	int enemyTime = 0;        // 敵の反応速度
 	int wins = 0;             // 連勝数
 	enum { WIN, LOSE, FLYING };
 	int resultType = WIN;
@@ -67,7 +67,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	PlaySoundMem(title, DX_PLAYTYPE_LOOP); // BGMをループ再生
 	
-	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)	// メインループ
+	while (1)	// メインループ
 	{
 		ClearDrawScreen();	// 画面クリア
 
@@ -93,7 +93,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 			// UI表示（連勝数）
 			SetFontSize(24);
-			DrawFormatString(10, 10, GetColor(255, 255, 0), "連勝数: %d", wins);
+			DrawFormatString(10, 10, GetColor(240, 210, 130), "連勝数: %d", wins);
 
 			drawText(330, 90, GetColor(220, 180, 70), "刹那の一閃", 60);
 
@@ -127,7 +127,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			break;
 
 		case RULE:
-			DrawExtendGraph(0, 0, 920, 640, imgBg3, false);
+			DrawExtendGraph(0, 0, 920, 640, imgBg, false);
 
 			SetFontSize(60);
 			DrawString(350, 60, "遊び方", GetColor(220, 180, 70));
@@ -152,7 +152,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			break;
 
 		case WAIT: // 構え・合図待ち状態
-			DrawExtendGraph(0, 0, 920, 640, imgBg, false);
+			DrawExtendGraph(0, 0, 920, 640, imgBg1, false);
 
 			SetFontSize(40);
 			DrawString(360, 100, "じっと待て...", GetColor(0, 150, 255));
@@ -171,12 +171,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			{
 				scene = CUT;
 				timer = 0;
-				signalStartTime = GetNowCount(); // 計測開始（ミリ秒）
+				signalStartTime = GetNowCount(); // 計測開始
 			}
 			break;
 
 		case CUT: // 合図発生！抜刀入力待ち
-			DrawExtendGraph(0, 0, 920, 640, imgBg1, false);
+			DrawExtendGraph(0, 0, 920, 640, imgBg2, false);
 
 			SetFontSize(80);
 			DrawString(160, 180, "見切ったり！", GetColor(255, 0, 0));
@@ -268,7 +268,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			break;
 
 		case RESULT: // 勝敗結果表示
-			DrawExtendGraph(0, 0, 920, 640, imgBg2, false);
+			DrawExtendGraph(0, 0, 920, 640, imgBg3, false);
 
 			SetFontSize(50);
 			if (resultType == WIN)
@@ -316,7 +316,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 			// UI表示（連勝数）
 			SetFontSize(24);
-			DrawFormatString(10, 10, GetColor(255, 255, 0), "連勝数: %d", wins);
+			DrawFormatString(10, 10, GetColor(240, 210, 130), "連勝数: %d", wins);
 
 			// 誤連打防止のため結果画面遷移後 30フレーム経過してから入力を受け付ける
 			if (timer > 30 && isMousePush)
@@ -332,6 +332,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 		ScreenFlip();	//裏画面の内容を表画面に反映させる
 		WaitTimer(16);
+		if (ProcessMessage() == -1) break;	//Windowsから情報を受け取りエラーが起きたら終了
+		if (CheckHitKey(KEY_INPUT_ESCAPE) == 1) break;	//ESCキーが押されたら終了
 	}
 
 	DxLib_End();	// ライブラリ終了処理
