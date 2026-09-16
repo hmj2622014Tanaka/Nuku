@@ -38,7 +38,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	int reactionTime = 0;     // プレイヤーの反応速度
 	int enemyTime = 0;        // 敵の反応速度
 	int wins = 0;             // 連勝数
-	enum { WIN, LOSE, FLYING };
+	enum { WIN, LOSE1, LOSE2, FLYING };
 	int resultType = WIN;
 
 	// タイマー計測用
@@ -83,7 +83,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		bool isMousePush = (mouseNow & MOUSE_INPUT_LEFT) && !(mouseOld & MOUSE_INPUT_LEFT);
 
 		timer++; // タイマーカウント
-
 
 		switch (scene)
 		{
@@ -176,6 +175,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			break;
 
 		case CUT: // 合図発生！抜刀入力待ち
+
 			DrawExtendGraph(0, 0, 920, 640, imgBg2, false);
 
 			SetFontSize(80);
@@ -212,7 +212,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				}
 				else
 				{
-					resultType = LOSE;
+					resultType = LOSE1;
 					wins = 0;
 					scene = RESULT;
 					PlaySoundMem(lose, DX_PLAYTYPE_LOOP); // BGMをループ再生
@@ -221,6 +221,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				timer = 0;
 				StopSoundMem(wait);
 				PlaySoundMem(seNuku, DX_PLAYTYPE_BACK); // 効果音
+			}
+			// 一定時間クリックされなければ負け
+			else if (timer >= 120)
+			{
+				resultType = LOSE2;
+				wins = 0;
+				scene = RESULT;
+
+				enemyTime = (GetRand(150) + 400) - (wins * 13);
+				if (enemyTime < 250) enemyTime = 250; // 敵の最速下限値
+				
+				StopSoundMem(wait);
+				PlaySoundMem(seNuku, DX_PLAYTYPE_BACK); // 効果音
+				PlaySoundMem(lose, DX_PLAYTYPE_LOOP); // BGMをループ再生
 			}
 			break;
 
@@ -273,19 +287,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			SetFontSize(50);
 			if (resultType == WIN)
 			{
-
 				DrawString(300, 140, "【 勝利 】", GetColor(0, 255, 0));
 				DrawFormatString(170, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
 				DrawFormatString(170, 270, GetColor(170, 170, 170), "敵の速度    : %d ms", enemyTime);
-				if (reactionTime < 250)
+				if (reactionTime <= 250)
 				{
 					drawText(170, 330, GetColor(230, 190, 70), "神速", 50);
 				}
-				else if (reactionTime < 300)
+				else if (reactionTime <= 300)
 				{
 					drawText(170, 330, GetColor(150, 80, 190), "一閃", 50);
 				}
-				else if (reactionTime < 400)
+				else if (reactionTime <= 400)
 				{
 					drawText(170, 330, GetColor(90, 150, 190), "達人", 50);
 				}
@@ -294,11 +307,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 					drawText(170, 330, GetColor(130, 130, 130), "未熟", 50);
 				}
 			}
-			else if (resultType == LOSE)
+			else if (resultType == LOSE1)
 			{
 				DrawString(300, 140, "【 敗北 】", GetColor(100, 100, 255));
 				DrawFormatString(170, 220, GetColor(255, 255, 255), "あなたの速度: %d ms", reactionTime);
 				DrawFormatString(170, 270, GetColor(255, 136, 136), "敵の速度    : %d ms", enemyTime);
+			}
+			else if (resultType == LOSE2)
+			{
+				DrawString(300, 140, "【 敗北 】", GetColor(100, 100, 255));
+				DrawFormatString(170, 220, GetColor(255, 255, 255), "あなたの速度: --- ms");
+				DrawFormatString(170, 270, GetColor(255, 136, 136), "敵の速度    : %d ms", enemyTime);
+
+				SetFontSize(35);
+				DrawFormatString(170, 330, GetColor(255, 0, 0), "機を逸した");
+
 			}
 			else if (resultType == FLYING)
 			{
@@ -335,7 +358,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		if (ProcessMessage() == -1) break;	//Windowsから情報を受け取りエラーが起きたら終了
 		if (CheckHitKey(KEY_INPUT_ESCAPE) == 1) break;	//ESCキーが押されたら終了
 	}
-
 	DxLib_End();	// ライブラリ終了処理
 	return 0;
 }
